@@ -1,0 +1,19 @@
+\begin{algorithm}
+    \caption{Bid submission algorithm.}
+    \label{alg:bid}
+    \begin{algorithmic}[1]
+        \Function{Bid}{$\pk, \sk_s, \pk_v, x$}
+        \State $(c,d) \gets \mathtt{Commit}(x)$
+        \State $\sigma \gets \mathtt{RSig}(\pk, \sk_s, c)$
+        \State $\Sigma \gets \mathtt{RSig}(\pk, \sk_s, c || \sigma)$
+        \State $m_1 \gets c || \sigma || \Sigma || d$
+        \State $C_1 \gets \mathtt{Enc}(\pk_v, m_1)$
+        \State $(c_1, d_1) \gets \mathtt{Commit}(C_1)$
+        \State $\delta \gets \mathtt{R2Sig}([\pk_s, \pk_v], \sk_s, c || \sigma || \Sigma)$
+        \State $m_2 \gets c || \pk_s || \pk_v || \sigma || \Sigma || \delta$
+        \State $C_2 \gets \mathtt{Enc}(\pk_v, m_2)$
+        \State $(c_2, d_2) \gets \mathtt{Commit}(C_2)$
+        \State \textbf{return} $(c, \sigma || c_1 || c_2, C_1 || d_1, C_2 || d_2)$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}

@@ -1,0 +1,45 @@
+\section{Preliminaries}
+\label{sec-Preliminaries}
+In this section, we recall some standard definitions of commitment
+scheme, \gls{pke}, \gls{rs} and \gls{zkp}. In what follows, standard security definitions are assumed for the security properties of the schemes.
+
+\subsection{Commitment Scheme}
+A commitment scheme is 2-tuple of \ppt ~algorithms $\Comm=(\Com, \Op)$ which needs to be \textit{correct}, \textit{hiding} and \textit{binding} and which are described as follows:
+\begin{description}
+	\item[Commitment]$(c,d) \gets \Com(m)$, where $(c,d)$ is the commitment pair and $m$ is a message.
+	\item[Opening]$m \gets \Op(c,d)$, where $(c,d)$ is a valid pair.
+\end{description}
+
+\subsection{Ring Signature}%
+\acrlong{rs} was introduced by Rivest et al. in 2001~\cite{rivest2001leak} and allows a member of a \textit{ring} of users to anonymously sign a message. A ring is a list of possible signers, with each of them being associated with a public key $\pk_i$, and the corresponding secret key $\sk_i$ (for the $i^{\text{th}}$ user). When a \textit{verifier} checks the signature, she can only conclude that a member of the ring endorsed it, without being able to determine the identity of the signer. A \gls{rs} scheme should be \textit{correct}, \textit{unforgeable} and \textit{anonymous}, and consists of a 3-tuple of \ppt ~algorithms $\Ring=(\RG, \RS, \RV)$ defined as follows:
+\begin{description}
+	\item[Key Generation]
+	$(\pk,\sk_s,s) \gets \RG(\secparam)$, where $\secpar$ denotes the security parameter, $\pk=[\pk_1, \dots, \pk_n]$ is a list of $n$ public keys, which includes the public key of the signer and $n-1$ decoy public keys, $\sk_s$ is the secret key of the signer and $s$ is the index of the signer's public key $\pk_s$ in $\pk$.
+	\item[Signature]
+	$\sigma \gets \RS(\pk,\sk_s,m)$, where $\sigma$ is the signature, and $m$ the message to be signed.
+\item[Verification]
+	$b \gets \RV(\pk,m,\sigma)$, where outcome $b\in\bin$ indicates the validity of the signature.
+\end{description}
+
+\subsection{Public Key Encryption}
+A \gls{pke} scheme consists of a 3-tuple of \ppt ~algorithms $\PKE=(\Gen, \Enc, \Dec)$ which should be \textit{correct} and \textit{ciphertext indistinguishable} and which are described as shown below:
+\begin{description}
+	\item[Key Generation]
+	$(\sk,\pk) \gets \Gen(\secparam)$, where $\secpar$ is the security parameter, and $\pk$ and $\sk$ are the public and secret key, respectively.
+	\item[Encryption]
+	$c \gets \Enc(\pk,m)$, where $m$ is the message and $c$ the ciphertext.
+	\item[Decryption]
+	$m \gets \Dec(\sk,c)$.
+\end{description}
+
+\subsection{Zero-Knowledge Proof}
+\label{sec:preliminary_zkp}
+A \gls{zkp} system is a 3-tuple of algorithms $\ZKP = (\ZKGen, \ZKProve, \ZKVer)$ which should be \textit{perfectly complete}, \textit{succinct}, \textit{computationally sound} and \textit{computationally Zero-Knowledge}. They are defined as follows:
+\begin{description}
+	\item[Key Generation]
+	$\CRS \gets \ZKGen(\secparam, \mathcal{L})$, where $\CRS$ is the common reference string, $\secpar$ the security parameter, and $\mathcal{L}$ the language description.
+	\item[Proof Generation]
+	$\pi \gets \ZKProve(\CRS, s, w)$, with $s$ the statement whose membership to $\mathcal{L}$ has to be proved, $w$ the corresponding witness, and $\pi$ the proof.
+	\item[Proof Verification]
+	$b \gets \ZKVer (\CRS, \pi, s)$, with $b \in \bin$ the single bit indicating whether the verification succeeded.
+\end{description}

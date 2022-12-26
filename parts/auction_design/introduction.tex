@@ -1,0 +1,49 @@
+ \section{Introduction}%
+\label{sec-Introduction}%
+
+A distributed ledger of transactions providing record consistency and immutability is well admired in the domain of cryptocurrencies. The decentralization inherent to blockchains currently offers several properties including transparency and integrity. However, some applications require other security features, such as privacy. This last property is still unconventional in blockchain systems and is not straightforward to achieve, requiring the use of cryptographic techniques.
+
+A well designed auction system with a thorough understanding of bidding behavior can allocate resources in accordance with expected outcome. Different environments and settings define particular auction types. One of the most popular is the sealed-bid auction, where each bidder hands over a sealed envelope containing their secret bid to the auctioneer. In this paper, we focus on \textit{first-price} sealed-bid auction, where the highest bidder is the winner and has to pay the highest bid.
+
+The auction process has to be managed by an auctioneer, who is the designated party responsible for dispatching the auction resources. Ideally, she is trusted and should not collude with any of the bidders to outcome a biased decision. However, reducing the trust on the auctioneer is an innovative feature in line with the philosophy of blockchains, this is why our contribution aims to expand the abilities of such blockchain-based auction systems.
+
+\subsection{Related Work}%
+\label{subsec-related}%
+
+A large number of the protocols presented in the literature are based on the Ethereum blockchain, which is fully open and lacks privacy by default, but features a rich programmable environment relying on the smart contract paradigm. Kosba et al. proposed the addition of privacy to Ethereum in \cite{kosba2016hawk} by using \textit{privacy preserving} smart contracts, to ensure transactional privacy. Their framework is versatile and can accommodate auctions systems.
+
+In \cite{blass2018strain}, the Strain protocol allows to build blockchain-based sealed-bid auctions preserving bids privacy against malicious parties. A public bulletin board is used to publish the winning bid which is determined by comparing them by pairs. \glspl{zkp} are used to ensure that the participants used their original bid and that the auctioneer declared the winner without manipulation. Malicious bidders are punished by revealing their bid.
+
+%Strain~\cite{blass2018strain} presented a protocol to build blockchain-based sealed-bid auctions preserving bids privacy against malicious parties. A bulletin board is used to publish the winning bid which is determined by comparing them by pairs. Two different \glspl{zkp} ensure that the participants used the original bids under commitment and that the auctioneer declared the winner without manipulation. The malicious participant is punished by opening their commitment as their private key is partly shared among all participants through a distributed key generation process.
+
+Galal and Youssef presented a smart contract for verifiable first-price sealed-bid auction in \cite{galal2018verifiable}. Bidders submit their bids to a smart contract using Pedersen commitment, which are secretly revealed to the auctioneer via a \gls{pke} scheme. After declaring the winner, for each losing bid, the auctioneer has to engage into a set of interactive commit-challenge-verify protocols and therefore, the complexity of interaction depends on the number of bidders. Later, they improved this protocol in \cite{galal2018succinctly} and presented a smart contract with succinctly verifiable \gls{zkp} which enables single proof verification for the whole auction process.
+
+%We observe that existing research is primarily focused on bids confidentiality and enabling fair auction using \gls{zkp}. However, the bidder's privacy is still missing. The use case \textit{trading in a fair market} that we present in section \ref{subsec-usecase} requires additional cryptographic primitives in order to be successfully achieved.
+
+We observe that the existing literature focuses on bids confidentiality. To achieve bidder anonymity, the design of a new protocol needs to be introduced.
+
+\subsection{Auction in a Fair Market}%
+\label{subsec-usecase}%
+
+We assume a situation where all the bidders want to participate to an auction and to obtain their goods at a competitive price. In such an environment, they do not even want to disclose their interest, or the fact that they won the auction. This means that the identity of the bidders as well as the value of their bid should remain secret, and that the overall auction process should be publicly verifiable.
+
+%We assume a situation where all the bidders want to offer their product to consumers at a competitive price. In such a competitive environment, merchants do not even want to make their interest public. Even if a merchant is the winner, he does not want to disclose it. To summarise, this implies for the the bidders to be able to keep their identity secret and not to disclose their bids, and for the overall auction process to be able to be publicly verified.
+
+% Can we have a manager/trusted party who can see everything? Do we
+% want the public validation of auction outcome by participants only
+% or anyone can verify it? Do we have exactly the same requirements
+% for all the use cases? If no, which use case is the priority?
+
+\subsection{Our Contribution}%
+\label{subsec-contr}%
+We introduce a new protocol allowing to run an anonymous auction. Our construction presents the advantage of being generic and of using only existing cryptographic building blocks. Confidentiality and anonymity properties are achieved using \gls{dvrs}, commitment and \gls{pke}. Precisely, our sealed-bid auction protocol enables the bidders not to disclose their bids (confidentiality) and their identity (anonymity); to put minimal trust on the auctioneer, as she is trusted to assist the process but is unable to affect the outcome; to prevent the bidders from modifying their bids during the auction (bid binding); and to be publicly verifiable, which is required in the event of a dispute.
+
+% Furthermore, we present an open-source smart contract prototype for
+% first-price sealed bid auction written in Solidity.The source code
+% is available on Gitlab
+% \footnote{https://gitlab.com/denis.verstraeten/smart-payment-engine}.
+% No it is not, the git is private.
+
+% In this work, we address all these issues simultaneously without
+% significant overhead. Moreover, the trust on auctioneer is also
+% minimal.

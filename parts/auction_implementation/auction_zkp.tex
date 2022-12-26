@@ -1,0 +1,23 @@
+\begin{algorithm}
+    \caption{Returns the commitment to the winning bid.}
+    \label{verifiable_auction}
+    \begin{algorithmic}[1]
+        \Function{VerifiableAuction}{$x, c, d$}
+        \State $max \gets 0$
+        \State $c_w \gets \mathtt{null}$
+        \State $\text{success} \gets 1$
+        \For{$i \in \{1, \dots, N\}$}
+            \Comment{$N$ is the constant number of bidders.}
+            \If{$x_i \neq \mathtt{Open}(c_i, d_i)$}
+                \State $\text{success} \gets 0$
+                \State \textbf{return} $c_w, \text{success}$
+            \EndIf
+            \If{$x_i > max$}
+                \State $max \gets x_i$
+                \State $c_w \gets c_i$
+            \EndIf
+        \EndFor
+        \State \textbf{return} $c_w, \text{success}$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}

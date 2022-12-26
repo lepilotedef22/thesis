@@ -1,0 +1,153 @@
+\section{Introduction}
+\label{sec-Introduction}
+A distributed ledger of transactions providing record consistency and immutability is well admired in the domain of cryptocurrencies. The decentralization inherent to blockchains currently offers several properties including transparency and integrity. These interesting features inspired many other areas such as insurance, cross-border banking, secure medical data, voting and e-auction. The adoption of salient characteristics is immediate in these applications, however each of them demands several other particular features. For instance, voting and e-auction might need privacy besides transparency and integrity. However, privacy in blockchain is still an unconventional asset, intuitively challenging because it seems against its default transparent nature. In blockchain transactions, the privacy is achieved with confidentiality and anonymity techniques. 
+
+% “In transaction systems, such as blockchain networks, privacy is frequently achieved by mechanisms that enforce the confidentiality of data and the anonymity of transaction participants.“
+% \vspace{1.5mm}
+% Why online auction is so popular
+A well designed auction system having a thorough understanding of bidding behavior can allocate resources in accordance with expected outcome. There are different types of auctions determined by the  particular environments and settings in which they take place. The most popular type of auction is the sealed-bid auction. Each bidder hands over a sealed envelope containing his secret bid to the auctioneer. There are two variations in this category, namely first-price and second-price auctions based on what the winning bidder pays eventually. In first-price, the auctioneer opens all envelopes and declares the highest bidder as the winner, while keeping losing bids secret. For second-price, the winner pays the second highest bid. The second-price sealed-bid is also called the Vickrey auction (named after William Vickrey). 
+% One of them is open cry auction, a traditional type of auction in which the bidders publicly announce their bids. These are further sub-categorized into English auction and Dutch auction. In English auction, the auctioneer invites bids and once a bid has been made, the subsequent bids are higher than the previous bid. The latest bidder is declared as the winner. On the other hand, in Dutch auctions, the auctioneer offers goods and services at a high price. If no buyer accepts the price, the price is lowered and so on. The first bidder wins the auction. The second most popular type of auction is sealed bid auction. Each bidder hands over a sealed envelope containing his secret bid to the auctioneer. Again this is categorized into first-price and second-price auctions based on what the winning bidder pays eventually. In first-price, the auctioneer opens all envelopes and declares the highest bidder as the winner, while keeping losing bids secret. For second-price, the winner pays the second highest price bid. The second-price sealed-bid is also called the Vickrey auction (named after William Vickrey). The other type of auction is multi-items auction, where multiple identical items are for sale. Each winner pays the price he bids (Discriminative Auction) or each winner pays the price of the lowest winning bid (Non-discriminative auction).
+% 
+
+The auction process has to be managed by an auctioneer, who is the designated party responsible for dispatching the auction resources. Ideally, this party is trusted and should not collude with any of the bidders to outcome a biased decision. However, reducing the trust on the auctioneer is an innovative feature in line with the philosophy of blockchains, this is why our contribution aims to expand the abilities of such blockchain-based auction systems.
+% Therefore, in our work, we assume an auctioneer trusted to assist in bidding process but not to exploit this dependency. 
+
+ \subsection{Related Work} 
+\red{The anonymity in sealed-bid auctions is well investigated area of research. However, these solutions can not directly be endorsed to apply on blockchain-based auctions. In the view of permissioned and permissionless settings, the essential requisites can be different and therefore a tailored solution must be adapted. For instance, the anonymity in Hyperledger Fabric~\cite{HLFabric}-a permissioned blockchain, can be achieved with Idemix~\cite{Idemix}, and hence the fact, the anonymity techniques such as ring signatures, which we introduce in what follows, or group signatures may not be needed in such Fabric-based applications. The Idemix technology implements anonymous credential scheme that relies on a blind signature and efficient \gls{zkp} of signature possession. Such credential systems need a trusted third party to issue these credentials, for example membership service provider (MSP) in Hyperledger Fabric. Indeed the anonymity or confidentiality support from the underlying blockchain platform can provide a less complicated solution to some complex use cases. 
+To reduce complexity in open blockchains, some emerging solutions rely on a trusted third party (TTP) as a registration authority ensuring that the participants in the application are already registered and therefore, malicious participants can be traced back. One of the example here is ZebraLancer~\cite{lu2018zebralancer} wherein a decentralized crowdsourcing of human knowledge is implemented on top of Ethereum. The authors implicitly consider a registration authority validating each participant's unique identity and issuing certificates to them. The common-prefix-linkable anonymous authentication scheme provides anonymity to participants as long as they honestly follow the protocol. Such solutions are limited to easy traceability by registration authority and collusion attack. The malicious auctioneer can easily collude with some bidder and make him winner by sharing bids before auction conclusion. Also, Ethereum can easily reveal anonymity while depositing/paying fee for rewards. Removing the trust from auctioneer is indeed appreciable however the overhead seems to be high enough not to be acceptable. Benhamouda et al. \cite{benhamouda2019supporting} presented an auction demonstration with only 3 parties: one seller and two buyers. A helper server assists as a trusted party with access to all the secrets and facilitates communication among chain codes. The time to execute a transaction is around 0.3 s which is expected to grow exponentially with an increasing number of participants. Moreover, this auction does not consider the anonymity of participants.}
+
+\red{However, it seems more challenging to deliver a solution for anonymous auction on permissionless blockchain such as Ethereum.} Kosba et al. \cite{kosba2016hawk} proposed Hawk, a combination of the privacy of Zcash with the programmability of Ethereum. The privacy preserving Smart Contracts have been employed to handle transactional privacy on Ethereum blockchain. They focused on presenting a framework which can simultaneously support several applications such as sealed-bid auction, rock paper scissor game, crowdfunding application and swap financial instrument. \red{The main limitation of Hawk is that it relies on a manager trusted explicitly not to leak secret inputs to Smart Contract. A recent improvement presented as zkHawk~\cite{banerjee2021zkhawk} by Banerjee et al. replaces the trusted manager with an \gls{mpc} protocol wherein the secret inputs are hidden from blockchain as well as from other participants. To mitigate the overhead incurred with \gls{mpc} protocol, the authors propose to run \gls{mpc} off-chain as an interactive protocol. The major limitation here is that all participating bidders have to be online during the whole process to run \gls{mpc}.
+A private and verifiable smart contract approach~\cite{sanchez2018raziel}, introduced as a combination of secure \gls{mpc} and proof-carrying code focusing primarily on correctness, privacy and verifiability guarantees for smart
+contracts on blockchains. The approach is well applicable to several applications such as private and verifiable crowdfundings and investment funds, double auctions for decentralized exchanges.}
+
+% Addressing the privacy Hawk: The Blockchain Model of Cryptography
+% and Privacy-Preserving Smart Contracts~\cite{kosba2016hawk} Hawk
+% implements a sealed, second-price auction where the highest bidder
+% wins but pays the second highest price. A decentralized smart
+% contract system provides transactional privacy. Several applications
+% such as sealed bid auction, rock paper scissor game, crowdfunding
+% application and swap financial instrument are described here. The
+% core idea is to combine the Zcash's privacy and Ethereum's
+% programmability. Homomorphic commitment is used to submit the bids.
+% The commitment is secretly revealed to auctioneer via a public key
+% encryption scheme. The auctioneer determines and declare the winner
+% of the auction. If manager aborts, he is financially penalized.
+% Bidders can check the manager has made a public deposit before
+% submitting their bids. The private portion determines the winning
+% bidder and the price to be paid. A minimally trusted manager can see
+% user's input but trusted not to disclose them, however can not
+% affect the correct execution of the contract. The manager is chosen
+% independently for each contract. Users can not see other's bids
+% before committing to their own (even when they collude with a
+% potentially malicious manager). Timeouts $T_1 < T_2 < T_3$ where
+% $T_1$-Hawk contract stops collecting bids after $T_1$, users open
+% their bids to manager within time $T_2$ and if the manager aborts,
+% users can reclaim their private bids after time $T_3$. Manager may
+% be instantiated with trusted computing hardware like Intel SGX. The
+% other option is to use MPC among the users themselves.
+
+Strain \cite{blass2018strain} presented a protocol to build
+blockchain-based sealed-bid auctions preserving bids privacy against
+malicious parties. A bulletin board is used to publish the
+winning bid which is determined by comparing them by pairs. Two different \glspl{zkp} ensure that the participants used the original bids under commitment and that the auctioneer declared the winner without manipulation. The malicious participant is punished by opening their commitment as their private key is partly shared among all participants through a distributed key generation process.
+
+Galal and Youssef \cite{galal2018verifiable} presented a smart contract for verifiable first-price sealed-bid auction on the Ethereum blockchain. Bidders submit their bids to a smart contract using Pedersen commitment \cite{pedersen1991non}. The commitments are secretly revealed to the auctioneer via a \gls{pke} scheme. After declaring the winner, for each losing bid, the auctioneer has to engage into a set of interactive commit-challenge-verify protocols to prove that the winning bid is greater than the losing bid and therefore, the complexity of interaction depends on the number of bidders. 
+% Moreover, handling random numbers in a \gls{zkp} setup is a difficult task. 
+Later, Galal and Youssef \cite{galal2018succinctly} improved this protocol and presented a Smart Contract with succinctly verifiable \gls{zkp} which enables single proof verification for the whole auction process. Similar to Zcash, they used \gls{mpc} among auctioneer and bidders to derive \gls{crs} during \gls{zksnark} set up.
+
+\red{Some interesting approaches such as Anon-Pass~\cite{lee2013anon} and SEAL~\cite{bag2019seal} can be further tailored for blockchain implementation. Anon-Pass is an anonymous subscription service focusing on trade-off between unlinkability vs re-authentication epoch. SEAL is an auctioneer-free first-price sealed-bid auction protocol. It securely computes the logical-OR of binary inputs without revealing each individual bit. No secret channel is required among participants. All operations are publicly verifiable and everyone including third party observers is able to verify the integrity of auction outcome. Finally, a party comes forward with a winning proof.}
+
+
+% BlockMaze: An efficient privacy preserving account-model blockchain
+% based on zk-SNARKs~\cite{guanblockmaze}
+% BlockMaze~\cite{guanblockmaze} is a privacy-Preserving Account-Model
+% Blockchain based on zk-SNARKs. Dual balance model: plaintext balance
+% and zero-knowledge balance (convertible to each other). achieves
+% strong privacy guarantees by hiding account balances, transaction
+% amount and linkage between senders and recipients. Implementation in
+% on Ethereum using libsnark library. Operations: Mint: merges a
+% plaintext amount with the zero-knowledge balance, Redeem: converts a
+% zero-knowledge amount back into the plaintext balance, Send: sends a
+% zero-knowledge amount from sender A to recipient B, Deposit: enables
+% a recipient to check and deposit a received payment into his
+% account. The Commitment scheme hides the account balance and
+% transaction amount. To break the linkage between transactions.
+% first, a sender computes a commitment on the transferred amount and
+% generates a zero-knowledge transaction to transfer funds; second,
+% recipient recovers the transfer commitment from sender and generates
+% a zero-knowledge transaction to deposit funds from the sender.
+
+% Another example in permissioned setting is PAChain-a private, authenticated and auditable consortium blockchain~\cite{yuen2019pachain}. Although PAChain is not presented in auction scenario, the 
+% The private means the transaction
+% can be validated without revealing transaction details such as the
+% identity of transacting parties and the transaction amount. The
+% auditable refers complete transaction details can be revealed by
+% auditors, regulators or law enforcement agencies and authenticated
+% means only authorized parties can be involved in the transaction.
+% The concept of authentication and auditability are strongly
+% connected. The main cryptographic building blocks are anonymous
+% credential, zero-knowledge range proof and additive homomorphic
+% encryption. Three separate modules to provide sender's privacy,
+% recipient's privacy and to hide transaction amount. The sender's
+% privacy: Alice uses anonymous credential issued by endorser of
+% previous transaction received by her to ensure that she is
+% authenticated. The recipient's privacy: is managed by sharing a
+% one-time ephemeral key via Diffie-Hellman protocol, however the
+% zero-knowledge proof ensures that the recipient is authorized. The
+% transaction amount privacy: achieved by using additive homomorphic
+% encryption and zero-knowledge proof. The ZKP shows that the
+% transaction output amount is encrypted correctly, falls within range
+% and total transaction input and output amount are balanced. The
+% auditability for sender and recipient identity can be achieved by
+% encrypting their public keys to the auditor, followed by
+% zero-knowledge proof of the correctness of such encryption.
+
+       
+% Some conclusions drawn from the existing work can be summarized as
+% follows: If parties/auctioneer do not follow the protocol, financial
+% penalty can be applied.
+
+Following the above discussion, it can be easily inferred that existing research is primarily focused on bids confidentiality and enabling fair auction using \gls{zkp}. However, the bidder's privacy is still missing. The use case \textit{auction in a fair market} that we present in Section \ref{subsec-usecase} requires additional cryptographic primitives in order to be successfully achieved.
+
+\subsection{Auction in a Fair Market}
+\label{subsec-usecase}
+We assume a situation where all the sellers or merchants want to offer
+their products to consumers at competitive prices. In such a competitive environment, merchants do not even want to make their interest public. Even if a merchant is the winner, he might not be interested to disclose it. Only the consumer, auctioneer and merchant are aware about this procurement or purchase. Therefore, it would be a desirable feature for sellers and merchants to be able to offer a sealed-bid auction, without disclosing their identity. Without loss of generality, the auction type we choose here is first price sealed-bid auction. To summarise, \textit{auction in a fair market} implies for the the bidders to be able to keep their identities secret and not to disclose their bids, and for the overall auction process to be able to be publicly verified.
+
+% Can we have a manager/trusted party who can see everything? Do we want
+% the public validation of auction outcome by participants only or
+% anyone can verify it? Do we have exactly the same requirements for all
+% the use cases? If no, which use case is the priority?
+
+\noindent{\bf \red{Motivation} and Contribution.} \red{The limitations of traditional auctions are centralization, lack of transparency, no interoperability and malicious behaviour by auctioneer or bidders. A blockchain-based auction can address these issues, however adding anonymity to this feature list is quite challenging. The existing blockchain-based auction solutions are either in permissioned setting or do not satisfy anonymity of bidders.} We introduce a new protocol allowing to run an auction in a fair market. Our construction presents the advantage of being general and of using only existing cryptographic building blocks. The confidentiality and anonymity properties are achieved by using \gls{dvrs}. Moreover, it is possible to leverage the transparency and auditability of blockchain platforms in order to make the auction process publicly verifiable, which is an interesting feature in the event of a dispute among parties. 
+% \textcolor{red}{Vishal et al. paper
+%   improvement-Blockchain+auditing+zkproof}
+
+% \textcolor{red}{Galal's paper improvement-Signer's anonymity}
+
+% \textcolor{red}{Assumption-Blockchain facilitates anonymous and
+%   encrypted communication}
+Precisely, our sealed-bid auction protocol enables the following properties:
+\begin{itemize}
+\item The bidders do not want to disclose their bids (confidentiality
+  of bids).
+\item The bidders do not want to disclose their identity during the
+  whole process (anonymity of bidding parties).
+\item The auctioneer is minimally trusted to assist in the bidding
+  process but not to affect its correct execution.
+\item Bids once committed, can not be retracted or changed (bid
+  binding).
+\item The auction process is publicly verifiable.
+% \item Non-Interactivity \& Scalability ??\cite{galal2018succinctly}
+\end{itemize}
+
+% Furthermore, we present an open-source smart contract prototype for
+% first-price sealed bid auction written in Solidity.The source code
+% is available on Gitlab
+% \footnote{https://gitlab.com/denis.verstraeten/smart-payment-engine}.
+% No it is not, the git is private.
+
+% In this work, we address all these issues simultaneously without
+% significant overhead. Moreover, the trust on auctioneer is also
+% minimal.
+% \red{The rest of the paper is organized as follows:  }

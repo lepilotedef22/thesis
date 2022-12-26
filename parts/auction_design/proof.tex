@@ -1,0 +1,230 @@
+\section{Security Proof}
+\label{sec-secproof}
+
+	In this section, we analyze the security of our proposed scheme.
+
+	\begin{theorem}
+	Assume $\Ring=(\RG, \RS, \RV)$ be an anonymous and unforgeable ring signature, $\PKE=(\Gen,\Enc, \Dec)$ be a semantically secure encryption scheme and $\Comm=(\Com, \Op)$ be a hiding and binding commitment scheme, then our construction $\ABS=(\mathtt{KeyGen},\mathtt{Bid},\bidOp,\idOp)$ relying on these components is correct, signer anonymous, unforgeable and unpretendable.
+	\end{theorem}
+	\begin{proof}
+	In order to prove this, we need to successfully deduce the security requirements of our construction from the corresponding security requirements of the underlying components. Although the proof is straightforward, however, due to page restrictions, we defer it to the full version of this paper.
+  
+  % \begin{description}
+  % \item[\textbf{Correctness. }]%
+  %   The correctness of \gls{abs} is implied by successful opening of
+  %   bids and uncovering the true identity of the winner. For a
+  %   submitted bid $Z_i=(c, \sigma||c_1||c_2)$, the correctness of
+  %   bid opening algorithm relies on the correctness of \gls{rs},
+  %   \gls{pke} and $\Comm$. Therefore the following verifications
+  %   must hold:
+  %   \begin{itemize}
+  %   \item%
+  %     $\RV(\pk,c_i,\sigma_i)=1$
+  %   \item%
+  %     $\Op(c_{i1},d_{i1})\stackrel{?}{=}C_{i1}$
+  %   \item%
+  %     $\Dec(\sk_v,C_{i1})=m_{i1}$ where
+  %     $m_{i1}=c_i||\sigma_i||\Sigma_i||d_i$
+  %   \item%
+  %     $\RV(\pk,c_i||\sigma_i,\Sigma_i)=1$
+  %       %   \item%
+  %       %     $\TV(\{\pk_w,\pk_v\},c_i||\sigma_i||\Sigma_i,\delta)=1$
+  %   \end{itemize}
+  %   Similarly, for successful identity verification
+  %   $\idOp(\pk_s,\sk_v,\sigma,\tau_2)=1$ where $\tau_2$ is the
+  %   identity opening token in our proposed construction, the
+  %   following must hold:
+  %   \begin{itemize}
+  %   \item%
+  %     $\Op(c_{i2},d_{i2})\stackrel{?}{=}C_{i2}$
+  %       %   \item%
+  %       %     $\RV(\pk,c_i,\sigma)=1$,\quad
+  %       %     $\RV(PK,c_i||\sigma_i,\Sigma)=1$
+  %       %   \item%
+  %       %     $\Op(c_{i2},d_{i2})=C_{i2}$
+  %   \item%
+  %     $\Dec(\sk_v,C_{i2})=m_{i2}$ where
+  %     $m_{i2}=c_i||\pk_s||\pk_v||\sigma_i||\Sigma_i||\delta_i$
+  %       %   \item%
+  %       %     $\Op(c_{i1},d_{i1})=C_{i1}$
+  %       %   \item%
+  %       %     $\Dec(\sk_v,C_{i1})=m_{i1}$ where
+  %       %     $m_{i1}=(c_i||\sigma_i||\Sigma_i||d_i)$
+  %   \item%
+  %     $\TV(\{\pk_w,\pk_v\},c_i||\sigma_i||\Sigma_i,\delta)=1$ where
+  %     $w$ represents the winner's index.
+  %   \end{itemize}
+  % \item[\textbf{Unforgeability. }]%
+  %   Let us assume that $\A$ is the adversary attempting a forgery on
+  %   \gls{abs}. Here we construct a new adversary $\B$ which has same
+  %   polynomial time complexity as $\A$, attacking the unforgeability
+  %   of \gls{rs} with advantage
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{UF-CMA}}(k) \leq
+  %   Adv_{\Ring,\B}^{\text{UF-CMA}}(k) \,.\]%
+  %   The adversary $\B$ has access to the signing oracles
+  %   $\RS(\cdot,\sk_s,\cdot)$ and $\TS(\cdot,\sk_s,\cdot)$ and
+  %   answers the signing queries coming from $\A$ as follows:
+  %   \begin{itemize}
+  %   \item%
+  %     For any bid $x$, $\B$ requests its own signing oracle $\RS$
+  %     and outputs $\sigma_i$. Further, $\B$ computes the \gls{rs}
+  %     $\Sigma_i$ on message $c_i||\sigma_i$.
+  %   \item%
+  %     Compute encryption $C_{i1}\gets\Enc(\pk_v, m_{i1})$ where the
+  %     message $m_{i1}=c_i||\sigma_i||\Sigma_i||d_i$.
+  %   \item%
+  %     Compute commitment on the encrypted message $C_{i1}$ and
+  %     output as follows $(c_{i1},d_{i1})\gets\Com(C_{i1})$.
+  %   \item%
+  %     Further $\B$ computes a \gls{rs} $\delta_i$ on message
+  %     $c_i||\sigma_i||\Sigma_i$ using $\TS(\cdot,\sk_s,\cdot)$
+  %     oracle.
+  %   \item%
+  %     Compute encryption $C_{i2}\gets\Enc(\pk_v, m_{i2})$ where the
+  %     message
+  %     $m_{i2}=c_i||\pk_i||\pk_v||\sigma_i||\Sigma_i||\delta_i$.
+  %   \item%
+  %     Commitment on the encrypted message $C_{i2}$ is
+  %     $(c_{i2},d_{i2})\gets\Com(C_{i2})$.
+  %   \item%
+  %     Return $Z_i=\sigma_i||c_{i1}||c_{i2}$ to adversary $\A$.
+  %   \end{itemize}
+  %   According to the description of \gls{abs}, the above interaction
+  %   between $\A$ and $\B$ is perfectly simulated for $\A$ by $\B$.
+  %   Following the definition of $\bidOp$, whenever adversary $\A$
+  %   outputs a forged \gls{rs} $Z_i$, $\B$ successfully forged some
+  %   intermediate \gls{rs} $\sigma_i$, $\Sigma_i$ or $\delta_i$.
+  %   Therefore, a forgery by $\A$ in \gls{abs} implies forgery of
+  %   \gls{rs} by $\B$.
+
+  % \item[\textbf{Unpretendability. }]%
+  %   Let $\A=(\A_1,\A_2)$ be the adversary breaking the
+  %   unpretendability of \gls{abs}. Here we construct a new adversary
+  %   $\B$ which has same polynomial time complexity as $\A$,
+  %   attacking the binding property of commitment scheme $\Comm$
+  %   satisfying
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{UNP-FKE}}(k) \leq
+  %   Adv_{\Comm,\B}^{\text{BIND}}(k) \,.\]%
+  %   The challenger runs $(\pk,\sk_i,i,v)\gets\keygen(1^k)$ and
+  %   provides it to adversary $\B$.  The adversary $\B$ further
+  %   forwards the key pair to adversary $\A$. The adversary $\B$
+  %   answers the commitment queries of $\A$ by calling $\Comm$ oracle
+  %   in its own challenge. The unpretendability game runs as follows:
+  %   \begin{itemize}
+  %   \item%
+  %     $\B$ obtains from $\A_1$: $(x,st) \gets \A_1(\pk,\sk_i)$
+  %   \item%
+  %     $\B$ computes: $(\sigma_i,c_{i1,0},c_{i2,0}) \gets
+  %     \bid(\pk,\sk_{s_0},\pk_{v_0},x)$
+  %   \item%
+  %     $\B$ obtains from $\A_2$: $(s_1,v_1,c_{i1,1},c_{i2,1}) \gets
+  %     \A_2^{\bid(\cdot,\sk_i,\cdot,\cdot)}(st,\sigma_i,c_{i1,0},c_{i2,0})$
+  %   \end{itemize}
+  %     %   vishal% we have written \B \gets above. But from where?
+    
+  %   Now the adversary $\B$ halts with two commitment tuples
+  %   \[(c_{i1},d_{i1,0},C_{i1,0},C_{i1,1},d_{i1,1})
+  %     %   \]
+  %   \text{ \& }
+  %     %   \[
+  %   (c_{i2},d_{i2,0},C_{i2,0},C_{i2,1},d_{i2,1})\,.\]%
+  %   Here the sender's index $s_0 \neq s_1$ and we claim that
+  %   unpretendability game for $\A$ is perfectly simulated by $\B$.
+  %   Also, the successful verification
+  %   \[\bidOp(\pk,\sk_{v},c,\sigma,\tau_1)=1\] implies the
+  %   corresponding commitments must hold, that is,
+  %   $\Op(C_{i1,0},c_{i1},d_{i1,0})$ and
+  %   $\Op(C_{i1,1},c_{i1},d_{i1,1})$ both returns $m_{i1}$. Since the
+  %   signer index $s_0 \neq s_1$ it will ensure $C_{i1,0} \neq
+  %   C_{i1,1}$ and therefore $\B$ has clearly attacked the binding
+  %   property of $\Comm$. Similar argument works for other encryption
+  %   tuple $(C_{i2,0},C_{i2,1})$ and corresponding commitment
+  %   $c_{i2}$.  Therefore, whenever the adversary $\A$ successfully
+  %   breaks the unpretendability of \gls{abs}, $\B$ also breaks the
+  %   binding property of $\Comm$.
+
+  % \item[\textbf{Signer Anonymity. }]%
+  %   The \gls{abs} signer's anonymity relies upon the signer's
+  %   anonymity of the $\Ring$, the semantic security of the
+  %   encryption scheme $\PKE$ and the hiding property of the
+  %   commitment scheme $\Comm$. The final message
+  %   $Z_i=(c_i,\sigma_i||c_{i1}||c_{i2})$ includes a \gls{rs}
+  %   $\sigma_i$ and three commitments $c_i$,$c_{i1}$ and $c_{i2}$.
+  %   The underlying \gls{rs} $\sigma_i$ guarantees anonymity and
+  %   therefore a non-negligible advantage for the adversary can only
+  %   come from the commitment scheme.
+
+  %   Until the time interval $T_3$ starts and identity token $C_{i2}$
+  %   is released, the designated verifier is a potential adversary as
+  %   well and we ensure the signer anonymity is preserved for that
+  %   period.
+
+  %   Let $\E$ be the adversary attacking the anonymity of $\Ring$
+  %   with zero advantage and $\A=(\A_1,\A_2)$ be the adversary
+  %   breaking the anonymity of \gls{abs}. Here we construct a new
+  %   adversary $\B$ which has same polynomial time complexity as
+  %   $\A$, attacking the hiding property of commitment scheme $\Comm$
+  %   with advantage
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{ANON-FKE}}(k) \leq
+  %   Adv_{\Comm,\B}^{\text{HIDE}}(k) \,.\]%
+  %   The challenger runs $(\pk,\sk_i,i,v) \gets \keygen(1^k)$ and
+  %   provides it to adversary $\B$. The adversary $\B$ further
+  %   forwards the key pair to adversary $\A$. The adversary $\B$
+  %   answers $\A$'s commitment queries by calling $\Comm$ oracle in
+  %   its own challenge.  The adversary $\A$ provides to $\B$
+  %   \[%
+  %   (x,(s_0,v_0),(s_1,v_1),st) \gets
+  %   \A_1^{\bid(\pk,\sk_i,\cdot,\cdot)}(\pk)
+  %   \]%
+  %   with $PK_{v_0}=PK_{v_1}$. Further $\B$ computes the following:
+  %   \begin{itemize}
+  %   \item%
+  %     For a bid $x$, $\B$ requests its own signing oracle $\RS$ and
+  %     outputs $\sigma_i$. Further, $\B$ computes $\Sigma_i$ on
+  %     message $c_i||\sigma_i$
+  %   \item%
+  %     Compute encryption $C_{i1}\gets\Enc(\pk_v,m_{i1})$ where the
+  %     message $m_{i1}=c_i||\sigma_i||\Sigma_i||d_i$
+  %   \end{itemize}
+  %   For $b=\{0,1\}$, $\B$ returns two ciphertexts $C_{i1,b}$ to the
+  %   challenger for two different identities. The challenger chooses
+  %   a bit $b\overset{\$}{\gets}\{0,1\}$, computes $(c_{i1},d_{i1})$
+  %   using $\Com$ oracle and forwards the commital-decommital pair to
+  %   $\B$. The adversary $\B$ further computes a \gls{rs} $\delta_i$
+  %   on message $c_i||\sigma_i||\Sigma_i$, encrypts it and returns to
+  %   challenger. The challenger requests $\Comm$ oracle query and
+  %   outputs $(c_{i2},d_{i2})$ to $\B$. Now, $\B$ chooses a bit
+  %   $b_1\in\{0,1\}$ and provides $Z_{i,b_1}$ as challenge signature
+  %   to adversary $\A$. The adversary $\A$ guesses a random bit
+  %   $b_2\in\{0,1\}$ and returns to $\B$ which $\B$ forwards as its
+  %   own guess to challenger.  Here, $\B$ perfectly simulates the
+  %   anonymity game for $\A$ and therefore
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{ANON-FKE}}(k) =
+  %   Adv_{\Comm,\B}^{\text{HIDE}}(k) \,.\]%
+  %   Here, note that it is unlikely to guess whether $c_{i1}$ is the
+  %   commitment for $C_{i1,b}$ depending upon $b$'s choice by
+  %   challenger. The adversary $\A$ returns $b_2=b_1$ with
+  %   non-negligible advantage if $c_{i1}$ is the commitment for
+  %   $C_{i1,b_1}$ otherwise returns a random $b_2$. As $\B$ returns
+  %   $b_2$ as his response, which is actually received from $\A$,
+  %   therefore, $\B$'s advantage is equal to the advantage of $\A$.
+  %   So, before the release of identity verification token, we have
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{ANON-FKE}}(k) \leq
+  %   Adv_{\Ring,\E}^{\text{ANON-FKE}}(k)+
+  %   Adv_{\Comm,\B}^{\text{HIDE}}(k) \,.\]%
+  %   Once the time $T_2$ is over and identity token $C_{i2}$ is
+  %   released to auctioneer, the $\PKE$ scheme semantic security can
+  %   only protect the signer's anonymity. However, we assume the
+  %   $\PKE$ guarantees security any such attack and therefore, we
+  %   have
+  %   \[%
+  %   Adv_{\abs,\A}^{\text{ANON-FKE}}(k) \leq
+  %   Adv_{\Ring,\E}^{\text{ANON-FKE}}(k)+
+  %   Adv_{\PKE,\B}^{\text{SEC}}(k) \,.\qedhere\]%
+  % \end{description}
+\end{proof}

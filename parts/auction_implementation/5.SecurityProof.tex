@@ -1,0 +1,142 @@
+\section{Security Analysis}
+\label{sec-secproof}
+\red{Anonymous Bidding System should be analyzed in two aspects- the security of our proposed cryptographic scheme and its integration in the blockchain platform. Here, we claim that the auctioneer will declare the correct auction winner. However, the validity of our claim depends upon some presumptions: (i) we assume that the blockchain is an ideal public ledger; (ii) the underlying components such as ring signature, public key encryption, commitment scheme and \gls{zkp} satisfy their cryptographic properties as mentioned in section \ref{sec-Preliminaries}. The immutable and transparent nature of blockchain guarantees smooth integration of our generic scheme, to successfully hold an anonymous blockchain-based auction.}
+
+\red{An adversary can break the \textit{anonymity of bidders} only if during the interaction, a bidder's blockchain address is identifiable to auctioneer. The unconditional anonymity provided by ring signatures in time interval $T_1$ and $T_2$ prohibits auctioneer to identify the bidder until winning bidder opens his/her identity. On the other hand, the auctioneer's identity or blockchain address is public and known to all bidders in advance. Maintaining \textit{bid privacy} seems challenging in a transparent blockchain environment. We achieve it by using a commitment scheme which is hiding and binding, and submitting this commitment value to smart contract, publicly on blockchain. Moreover, the auctioneer can not access these bid values until the bid submission is closed. }
+
+\red{\textit{A malicious auctioneer} can pose threats in following ways: (i) auctioneer can claim that the ciphertext submitted by bidder did not open to the bid commitment; (ii)  auctioneer claims the opening value provided by bidder did not compute the corresponding commitment; (iii) auctioneer can collude with a bidder by sharing bid values of other bidders and assist him/her to win; (iv) auctioneer can announce a favoured bidder as winner. The first and second threats can be mitigated easily by utilizing blockchain's transparency feature. The ciphertext and commitment values are submitted as transactions on immutable blockchain by bidders, and therefore the auctioneer cannot cheat in this case. To protect against third threat of collusion with bidder, we introduced the concept of time intervals, the bid opening is initiated only after bid submission is closed. The \gls{zkp} protects against the last threat by submitting a public proof on blockchain where anyone can verify it.}
+
+\red{\textit{A malicious bidder} can cheat the system by: (i) submitting arbitrary ciphertext; (ii) not providing correct opening values; (iii) not responding in time interval $T_3$. The first two threats are straightforward to mitigate as all the data submitted by bidders is in the form of transactions to smart contract, and therefore can be verified. Our proposed solution does not cover this third threat and we leave it as an open problem. However, the solution suggested by Strain~\cite{blass2018strain} can partially fill this gap by allowing the other participants to open the commitments by an honest majority, in the case of a dispute. The auction process is \textit{publicly verifiable} as its correctness can be verified using \gls{zkp}.}
+
+Below, we analyze the security of our proposed cryptographic scheme. Here we prove that the security of proposed cryptographic scheme directly relies on the individual security of the different building blocks.
+
+\begin{theorem} Assume $\Ring=(\RG, \RS, \RV)$ be an anonymous and unforgeable ring signature, $\PKE=(\Gen,\Enc, \Dec)$ be a semantically secure encryption scheme and $\Comm=(\Stp, \Com, \Op)$ be a hiding and binding commitment scheme, then our construction 
+\begin{equation*}
+    \abs=(\keygen,\bid,\bidOp,\idOp)
+\end{equation*}
+ relying on these components is correct, signer anonymous, unforgeable and unpretendable.
+\end{theorem}
+\begin{proof}
+  In order to prove this, we need to successfully deduce the security requirements of our construction from the corresponding security requirements of the underlying components.
+  \begin{description}
+  \item \textbf{Correctness.} The correctness of \gls{abs} is implied by successful opening of bids and uncovering the true identity of the winner. For a submitted bid $Z_i=(c_i, \sig_i)$, with modified signature $\sig_i = \sigma_i || c_{1,i} || c_{2,i}$, bid opening token $\tau_{1,i} = C_{1,i} || d_{1,i}$ and ring $\pk^i$, the correctness of the bid opening algorithm relies on the correctness of $\Ring$, $\PKE$ and $\Comm$. Therefore, the following conditions must hold:
+    \begin{itemize}
+    \item $\RV(\pk^i, c_i, \sigma_i) = 1$
+    \item $\Op(c_{1,i}, d_{1,i}) = C_{1,i}$ 
+    \item $\Dec(\sk_v, C_{1,i}) = m_{1,i}$ where $m_{1,i} = c_i || \sigma_i || \Sigma_i || d_i$
+    \item $\RV(\pk^i, c_i || \sigma_i, \Sigma_i) = 1$
+    % \item $\TV(\{\pk_w,\pk_v\},c_i||\sigma_i||\Sigma_i,\delta)=1$
+    \end{itemize}
+    Similarly, for successful identity verification $\idOp(\sk_v, \sig_i, \tau_{2,i})=1$ where $\tau_{2,i} = C_{2,i} || d_{2,i}$ is the identity opening token introduced in our proposed construction, the following must hold:
+    \begin{itemize}
+    \item $\Op(c_{2,i}, d_{2,i}) = C_{2,i}$
+    % \item $\RV(\pk,c_i,\sigma)=1$,\quad $\RV(PK,c_i||\sigma_i,\Sigma)=1$
+    % \item $\Op(c_{i2},d_{i2})=C_{i2}$
+    \item $\Dec(\sk_v, C_{2,i}) = m_{2,i}$ where $m_{2,i} = c_i || \pk_w || \pk_v || \sigma_i || \Sigma_i || \delta_i$ and where $w$ represents the winner's index.
+    % \item $\Op(c_{i1},d_{i1})=C_{i1}$ 
+    % \item $\Dec(\sk_v,C_{i1})=m_{i1}$ where $m_{i1}=(c_i||\sigma_i||\Sigma_i||d_i)$
+    \item $\TV([\pk_w, \pk_v], c_i || \sigma_i || \Sigma_i, \delta_i)=1$ 
+    \end{itemize}
+    
+  \item \textbf{Unforgeability.} Let us assume that $\A$ is the
+    adversary attempting a forgery on $\abs$. Here we construct a new adversary $\B$ which has same polynomial time complexity as $\A$, attacking the unforgeability of $\Ring$ with advantage
+    
+    \begin{equation*}
+        \advantage{UF-CMA}{\abs, \A} \leq \advantage{UF-CMA}{\Ring, \B}
+    \end{equation*}
+    
+    The adversary $\B$ has access to the signing oracles $\RS(\cdot,\sk_s,\cdot)$ and $\TS(\cdot,\sk_s,\cdot)$ and answers the signing queries coming from $\A$ as follows:
+    \begin{itemize}
+    \item For any bid $x_i$, $\B$ requests its own signing oracle $\RS$ and outputs $\sigma_i$. Further, $\B$ computes the \gls{rs} $\Sigma_i$ on message $c_i||\sigma_i$, with $(c_i, d_i) \gets \Com(x_i)$.
+    \item Computes encryption $C_{1,i}\gets\Enc(\pk_v, m_{1,i})$ where message $m_{1,i} = c_i || \sigma_i || \Sigma_i || d_i$.
+    \item Computes commitment $(c_{1,i}, d_{1,i}) \gets \Com(C_{1,i})$.
+    \item Computes a \gls{rs} $\delta_i$ on message $c_i || \sigma_i || \Sigma_i$ using $\TS(\cdot,\sk_s,\cdot)$ oracle.
+    \item Computes encryption $C_{2,i} \gets \Enc(\pk_v, m_{2,i})$ where message $m_{2,i} = c_i || \pk_i || \pk_v || \sigma_i || \Sigma_i || \delta_i$.
+    \item Computes commitment $(c_{2,i}, d_{2,i}) \gets \Com(C_{2,i})$.
+    \item Returns $Z_i=(c_i, \sig_i)$ and $\tau_{1,i}$ to adversary $\A$, with $\sig_i = \sigma_i || c_{1,i} || c_{2,i}$ and $\tau_{1,i} = C_{1,i} || d_{1,i}$.
+    \end{itemize}
+    
+    According to the description of $\abs$, the above interaction between $\A$ and $\B$ is perfectly simulated for $\A$ by $\B$. Following the definition of $\bidOp$, whenever adversary $\A$ outputs a forged $Z_i, \tau_{1,i}$, it means that $\B$ successfully forged some intermediate \gls{rs} $\sigma_i$, $\Sigma_i$ or $\delta_i$. Therefore, a forgery by $\A$ in $\abs$ implies forgery of $\Ring$ by $\B$.
+
+  \item \textbf{Unpretendability.} Let $\A=(\A_1,\A_2)$ be the
+    adversary breaking the unpretendability of $\abs$ and having access to the bidding oracle $\bid(\pk, \sk_s, \pk_v, \cdot)$. Here we construct a new adversary $\B$ which has the same polynomial time complexity as $\A$, attacking the binding property of commitment scheme $\Comm$ satisfying
+
+    \begin{equation*}
+        \advantage{UNP-FKE}{\abs, \A} \leq \advantage{Bind}{\Comm, \B}
+    \end{equation*}
+    
+    The challenger runs $(\pk,\sk_i,i,v) \gets \keygen(\secparam)$ and provides it to adversary $\B$. $\B$ further forwards this tuple to adversary $\A$. $\B$ answers the commitment queries of $\A$ by using its commitment oracle $\Com(\cdot)$. The unpretendability game runs as follows:
+    \begin{itemize}
+    \item $\B$ obtains from $\A_1$: $(x, s_1, v_1, \stateful) \gets \A_1^{\bid(\pk, \sk_i, \pk_v, \cdot)} (\pk)$
+    \item $\B$ computes: $(c, \sig, \tau_1, \tau_{2,1}) \gets \bid(\pk, \sk_{s_1}, \pk_{v_1}, x)$, with $\sig = \sigma || c_1 || c_2$, $\tau_1 = C_1 || d_1$ and $\tau_{2,1} = C_{2,1} || d_{2,1}$
+    \item $\B$ obtains from $\A_2$: $(s_2, v_2, \tau_{2,2}) \gets \A_2^{\bid(\pk,\sk_i,\pk_v,\cdot)}(c, \sig, \tau_1, \tau_{2,1}, \stateful)$, with $\tau_{2,2} = C_{2,2} || d_{2,2}$
+    \end{itemize}
+    %vishal% we have written \B \gets above. But from where?
+    Where $\tau_{2,j}$ is the identity opening token generated for sender at index $s_j$ in the ring $\pk$ by adversary $\A_j, ~j \in \{1,2\}$. Now the adversary $\B$ halts with a commitment tuple:
+    
+    \begin{equation*}
+        (c_2, C_{2,0}, d_{2,0}, C_{2,1}, d_{2,1})
+    \end{equation*}
+    
+    Here the sender's index $s_1 \neq s_2$ and we claim that unpretendability game for $\A$ is perfectly simulated by $\B$. Also, the successful verification
+    
+    \begin{equation*}
+        \idOp(\sk_{v_2}, \sig, \tau_{2,2}) = 1
+    \end{equation*}
+    
+implies the corresponding commitments must hold, \textit{i.e.} $\Op(c_2, d_{2,2}) = C_{2,2}$. On the other hand, since $(c_2, d_{2,1}) = \Com(C_{2,1})$ by definition, we have $\Op(c_2, d_{2,1})=C_{2,1}$. Since the signer index $s_1 \neq s_2$, $C_{2,1} \neq C_{2,2}$ and therefore $\B$ has clearly attacked the binding property of $\Comm$. Therefore, whenever the adversary $\A$ successfully breaks the unpretendability of $\abs$, $\B$ also breaks the binding property of $\Comm$.
+
+\item \textbf{Signer Anonymity.} The $\abs$ signer anonymity relies upon the signer anonymity of the $\Ring$, the semantic security of the encryption scheme $\PKE$ and the hiding property of the commitment scheme $\Comm$. The final message $Z = (c, \sig)$, with $\sig = \sigma || c_1 || c_2$, includes a \gls{rs} $\sigma$ and three commitments $c$, $c_1$ and $c_2$. The underlying \gls{rs} $\sigma$ guarantees anonymity and therefore a non-negligible advantage for the adversary can only come from the commitment scheme.
+
+Until the time interval $T_3$ starts and identity token $\tau_2$ is released, the designated verifier is a potential adversary as well and we ensure the signer anonymity is preserved for that period.
+
+Let $\E$ be the adversary attacking the anonymity of $\Ring$ with zero advantage and $\A=(\A_1,\A_2)$ be the adversary breaking the anonymity of $\abs$ and having access to the bidding oracle $\bid(\pk, \sk_i, \pk_v, \cdot)$. Here we construct a new adversary $\B$ which has same polynomial time complexity as $\A$, attacking the hiding property of commitment scheme $\Comm$ with advantage
+
+    \begin{equation*}
+        \advantage{ANON-FKE}{\abs, \A} \leq \advantage{Hide}{\Comm, \B}
+    \end{equation*}
+    
+    The challenger runs $(\pk,\sk_i,i,v) \gets \keygen(1^k)$ and provides it to adversary $\B$. $\B$ further forwards this tuple to adversary $\A$. The adversary $\B$ answers $\A$'s commitment queries by calling the commitment oracle $\Com(\cdot)$ in its own challenge. The signer anonymity game runs as follows:
+    \begin{itemize}
+    \item $\A$ provides to $\B$: $(x, s_0, s_1, \stateful) \gets \A_1^{\bid(\pk, \sk_i, \pk_v, \cdot)}(\pk)$
+    \item For a bid $x$ and two signer indexes $s_i$, $\B$ requests its own signing oracle $\RS$ and outputs two signatures $\sigma_i$
+    \item $\B$ further computes $\Sigma_i$ on message $c||\sigma_i$
+    \item Compute encryption $C_{1,i}\gets\Enc(\pk_v,m_{1,i})$ where message $m_{1,i}=c||\sigma_i||\Sigma_i||d$
+    \item $\B$ further computes $\delta_i$ on
+    message $c||\sigma_i||\Sigma_i$ and outputs the ciphertext as $C_{2,i}$ on message $m_{2,i} = c || \pk_{s_i} || \pk_v || \sigma || \Sigma || \delta$
+    \end{itemize}
+    
+    Now, for two different signer identities, $\B$ forwards these two ciphertexts $C_{1,i}$ and $C_{2,i}$ to $\B$'s challenger. The challenger chooses a bit $b\overset{\$}{\gets}\{0,1\}$, computes $(c_{1,b},d_{1,b})$ and $(c_{2,b},d_{2,b})$ using $\Com$ oracle and returns to $\B$. 
+    Now, $\B$ chooses a bit $b_1\overset{\$}{\gets}\{0,1\}$ and provides $(c, \sig_{b_1}, \tau_{1,b_1}, \tau_{2,b_2}$) as challenge bid return to adversary $\A$. The adversary $\A$ guesses a random bit
+    $b_2\in\{0,1\}$ and returns to $\B$ which $\B$ forwards as its own
+    guess to challenger. Here, $\B$ perfectly simulates the anonymity
+    game for $\A$ and therefore
+    
+    \begin{equation*}
+        \advantage{ANON-FKE}{\abs, \A} = \advantage{Hide}{\Comm, \B}
+    \end{equation*}
+    
+    Here, note that it is unlikely to guess whether $c_{1,b}$ is the
+    commitment for $C_{1,i}$ depending upon $b$'s choice by
+    challenger. The adversary $\A$ returns $b_2=b_1$ with
+    non-negligible advantage if $c_{1,b}$ is the commitment for
+    $C_{1,b_1}$ otherwise returns a random $b_2$. As $\B$ returns
+    $b_2$ as his response, which is actually received from $\A$,
+    therefore, $\B$'s advantage is equal to the advantage of $\A$. So,
+    before the release of identity verification token, we have
+
+    \begin{equation*}
+        \advantage{ANON-FKE}{\abs, \A} \leq \advantage{ANON-FKE}{\Ring, \E} + \advantage{Hide}{\Comm, \B}
+    \end{equation*}
+    
+    Once the time $T_2$ is over and identity token $C_{2,i}$ is
+    released to auctioneer, the $\PKE$ scheme semantic security can
+    only protect the signer's anonymity. However, we assume the $\PKE$ guarantees security against any such attack and therefore, we have
+    
+    \begin{equation*}
+        \advantage{ANON-FKE}{\abs, \A} \leq \advantage{ANON-FKE}{\Ring, \E} + \advantage{SEC}{\PKE, \B}
+    \end{equation*}
+    
+  \end{description}
+\end{proof}
+

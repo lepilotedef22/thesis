@@ -1,0 +1,22 @@
+\begin{algorithm}
+    \caption{Identity opening algorithm.}
+    \label{alg:idop}
+    \begin{algorithmic}[1]
+        \Function{IdOp}{$\sk_v, \mathsf{sig}, \tau_2$}
+            \State $b \gets 0$
+            \State $\sigma, c_1, c_2 \gets \mathtt{parse}( \mathsf{sig})$
+            \State $C_2, d_2 \gets \mathtt{parse}(\tau_2)$
+            \If{$C_2 = \mathtt{Open}(c_2, d_2)$}
+                \State $m_2 \gets \mathtt{Dec}(\sk_v, C_2)$
+                \State $c, \pk_s, \pk_v, \tilde{\sigma}, \Sigma, \delta \gets \mathtt{parse}(m_2)$
+                \If{$c = \mathtt{getWinningCommitment}()$}
+                    \If{$\mathtt{R2Ver}([\pk_s, \pk_v], c || \sigma || \Sigma, \delta)$}
+                        \State $\mathtt{store}(\pk_s)$
+                        \State $b \gets 1$
+                    \EndIf
+                \EndIf
+            \EndIf
+            \State \textbf{return} $b$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}

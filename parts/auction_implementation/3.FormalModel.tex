@@ -1,0 +1,67 @@
+\section{Formal Model and Security Definitions}
+\label{sec-formal}
+In this Section, the mathematical definition of our Anonymous Fair Auction protocol is introduced, as well as the security properties which it has to fulfill. An \gls{abs} is a tuple of \ppt algorithms
+\begin{equation*}
+    \abs=(\keygen,\bid,\bidOp,\idOp)
+\end{equation*}
+defined as follows:
+\begin{itemize}
+\item Key Generation: $(\pk, \sk_s,s,v)\gets \keygen(1^k)$, with $k$ the security parameter, $\pk=[\pk_1,\dots,\pk_n]$ the ring members' public key, $\sk_s$ the signer's private key, $s$ and $v$ the indices of the signer's and verifier's public key in $\pk$, respectively.
+\item Bid submission: $(c, \sig, \tau_1, \tau_2)\gets\bid(\pk, \sk_s, \pk_v, x)$, with $x$ the bid value, $\pk_v$ the verifier's public key, $c$ the commitment to the bid, $\sig$ the modified signature to the bid, $\tau_1$ the bid opening token and $\tau_2$ the identity opening token.
+\item Bid opening: $b\gets\bidOp(\pk, \sk_v, c, \sig, \tau_1)$, with $\sk_v$ the verifier's private key and $b\in\{0,1\}$ a single bit indicating whether the bid opening succeeded.
+\item Identity opening: $b\gets\idOp(\sk_v, \sig, \tau_2)$, with $\pk_s$ the signer's public key and $b\in\{0,1\}$ a single bit indicating whether the identity opening succeeded.
+\end{itemize}
+Our \gls{abs} has to feature the following security properties:
+\begin{description}
+\item \textbf{Correctness.} An \gls{abs} is said to be correct if for any valid bid $x$, the following two properties hold:
+  \begin{equation*}
+      \pr\left[\,\begin{array}{l}
+      (\pk,\sk_s, s, v) \gets \keygen(1^k),\\
+      (c, \sig,\tau_1, \tau_2) \gets \bid(\pk,\sk_s,\pk_v, x)
+    \end{array}\,: \, \bidOp(\pk,\sk_v,c,\sig,\tau_1)=1 \,\right] = 1
+  \end{equation*}
+  \begin{equation*}
+      \pr\left[\,\begin{array}{l}
+      (\pk,\sk_s, s, v) \gets \keygen(1^k),\\
+      (c, \sig,\tau_1, \tau_2) \gets \bid(\pk,\sk_s,\pk_v, x)
+    \end{array}\,: \, \idOp(\sk_v,\sig,\tau_2)=1 \,\right] = 1
+  \end{equation*}
+
+\item \textbf{Unforgeability.} An \gls{abs} satisfies unforgeability if for any \ppt adversary $\A$,
+\begin{equation*}
+    \pr\left[\,\begin{array}{l}
+      (\pk,\sk_s, s, v) \gets \keygen(1^k),\\
+      (x,c,\sig,\tau_1) \gets \A^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+      b \gets \bidOp(\pk,\sk_v,c,\sig,\tau_1)
+    \end{array}\,: \, b=1 \,\right] = \negl{k}
+\end{equation*}
+where the adversary $\A$ is not allowed to query the bid submission oracle $\bid(\pk, \sk_s, \pk_v,\cdot)$ with bid $x$.
+
+An \gls{abs} satisfies \textit{strong} unforgeability if it satisfies unforgeability with the adversary $\A$ given access to the bidding oracle $\bid(\pk, \sk_s, \pk_v,\cdot)$ for bid $x$ as well, but without the ability to obtain $(c,\sig,\tau_1, \tau_2)$ as a response.
+
+\item \textbf{Signer Anonymity.} An \gls{abs} satisfies anonymity if for any \ppt adversary $\A=(\A_1,\A_2)$,
+\begin{equation*}
+    \left|\pr\left[\,\begin{array}{l}
+      (\pk,\sk_s, s,v) \gets \bgen(1^k),\\
+      (x,s_0,s_1,\stateful) \gets \A_1^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+      b \overset{\$}{\leftarrow} \{0,1\},\\
+      (c,\sig,\tau_1,\tau_2) \gets \bid(\pk,\sk_{s_b},\pk_v,x),\\
+      b' \gets \A_2^{\bid(\pk,\sk_s,\pk_v,\cdot)}(c,\sig,\tau_1, \stateful)
+    \end{array}\,: \, b'=b \,\right] - \frac{1}{2}\right| = \negl{k}
+\end{equation*}
+where $\stateful$ is a state allowing stateful communication between $\A_1$ and $\A_2$.
+If the attacker has an additional access to the list of secret keys, and if signer anonymity is preserved, then the scheme has signer anonymity \textit{against full key exposure}.
+
+\item \textbf{Unpretendability.} An \gls{abs} satisfies unpretendability if for any \ppt adversary $\A=(\A_1,\A_2)$,
+\begin{equation*}
+    \pr\left[\,\begin{array}{l}
+      (\pk,\sk_s,s,v) \gets \bgen(1^k),\\
+      (x,s_1, v_1, \stateful) \gets \A_1^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+      (c, \sig, \tau_1,\tau_{2,1}) \gets \bid(\pk,\sk_{s_1},\pk_{v_1},x)\\
+      (s_2, v_2,\tau_{2,2}) \gets \A_2^{\bid(\pk,\sk_s,\pk_v,\cdot)}(c,\sig,\tau_1,\tau_{2,1},\stateful)\\
+      b \gets \idOp(\sk_{v_2},\sig,\tau_{2,2})
+    \end{array}\,: \, b=1 \,\right] = \negl{k}
+\end{equation*}
+
+where the adversary $\A$ is not allowed to choose $s_1=s_2$.
+\end{description}

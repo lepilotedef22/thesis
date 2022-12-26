@@ -1,0 +1,11 @@
+\begin{algorithm}
+    \caption{Key generation algorithm.}
+    \label{alg:gen}
+    \begin{algorithmic}[1]
+        \Function{KeyGen}{$1^k$}
+        \State $(\pk, \sk_s, s) \gets \mathtt{RGen}(1^k)$
+        \State $v \gets \mathtt{getAuctioneerIndex}(\pk)$
+        \State \textbf{return} $(\pk, \sk_s, s, v)$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}

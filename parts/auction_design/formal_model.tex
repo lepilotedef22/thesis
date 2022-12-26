@@ -1,0 +1,64 @@
+\section{Formal Model and Security Definitions}
+\label{sec-formal}
+In this section, the mathematical definition of our Anonymous Fair Auction protocol are introduced, as well as the security properties which it has to fulfill. An \gls{abs} is a 4-tuple of \ppt ~algorithms $\ABS=(\keygen,\bid,\bidOp,\idOp)$ defined as follows:
+
+\begin{description}
+	\item[Key Generation]
+	$(\pk, \sk_s,s,v)\gets \keygen(\secparam)$, with $\secpar$ the security parameter, $\pk=[\pk_1,\dots,\pk_n]$ the ring members' public key, $\sk_s$ the signer's private key, $s$ and $v$ the indices of the signer's and verifier's public key in $\pk$, respectively.
+	\item[Bid submission]
+	$(c, \mysign, \tau_1, \tau_2)\gets\bid(\pk, \sk_s, \pk_v, x)$, with $x$ the bid value, $\pk_v$ the verifier's public key, $c$ the commitment to the bid, $\mysign$ the signature of the bid, $\tau_1$ the bid opening token and $\tau_2$ the identity opening token.
+	\item[Bid opening]
+	$b\gets\bidOp(\pk, \sk_v, c, \mysign, \tau_1)$, with $\sk_v$ the verifier's private key and $b\in\bin$ a single bit indicating whether the bid opening succeeded.
+	\item[Identity opening]
+	$b\gets\idOp(\sk_v, \mysign, \tau_2)$, with $b\in\bin$ a single bit indicating whether the identity opening succeeded.
+\end{description}
+
+Our \gls{abs} has the following security properties:
+\begin{description}
+	\item[\textbf{Correctness}]
+	It is correct if for any valid bid $x$, any $(\pk,\sk_s, s, v) \gets \keygen(\secparam)$, and $(c, \mysign,\tau_1, \tau_2) \gets \bid(\pk,\sk_s,\pk_v, x)$, the following two properties hold:
+	  \begin{align*}
+	    &\pr\left[\bidOp(\pk,\sk_v,c,\mysign,\tau_1)=1 \right] = 1 \,;\\
+	    &\pr\left[\idOp(\sk_v,\mysign,\tau_2)=1 \right] = 1 \,.
+	  \end{align*}
+
+	\item[\textbf{Unforgeability}]
+	It satisfies unforgeability if for any \ppt ~adversary $\adv$,
+	\begin{equation*}
+		\pr\left[\begin{array}{l}
+	      (\pk,\sk_s, s, v) \gets \keygen(\secparam),\\
+	      (x,c,\mysign,\tau_1) \gets \adv^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+	      b \gets \bidOp(\pk,\sk_v,c,\mysign,\tau_1)
+	    \end{array}\middle\vert\,  b=1 \right]	
+	\end{equation*}
+	is $\negl$ where the adversary $\adv$ is not allowed to query the bid submission oracle $\bid(\pk, \sk_s, \pk_v,\cdot)$ with bid $x$. Our \gls{abs} satisfies \textit{strong} unforgeability if it satisfies unforgeability with the adversary $\adv$ given access to the bidding oracle $\bid(\pk, \sk_s, \pk_v,\cdot)$ for bid $x$ as well, but without the ability to obtain $(c,\mysign,\tau_1, \tau_2)$ as a response.
+
+	\item[\textbf{Signer Anonymity}]
+	It satisfies anonymity if for any \ppt ~adversary $\adv=(\adv_1,\adv_2)$,
+	\begin{equation*}
+		\hspace*{-.5cm}
+		\left|\pr\left[\begin{array}{l}
+	        (\pk,\sk_s, s,v) \gets \bgen(\secparam),\\
+	        (x,s_0,s_1,\state) \gets \adv_1^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+	        b \overset{\$}{\leftarrow} \{0,1\},\\
+	        (c,\mysign,\tau_1,\tau_2) \gets \bid(\pk,\sk_{s_b},\pk_v,x),\\
+	        b' \gets \adv_2^{\bid(\pk,\sk_s,\pk_v,\cdot)}(c,\mysign,\tau_1,
+	        \state)
+	      \end{array}\middle\vert\,  b'=b \right] - \frac{1}{2}\right|	
+	\end{equation*}
+	is $\negl$, where $\state$ is a state ensuring stateful communication between $\adv_1$ and $\adv_2$. If the attacker has an additional access to the list of secret keys, while preserving signer anonymity, then the scheme has signer anonymity \textit{against full key exposure}.
+
+	\item[\textbf{Unpretendability}]
+	  It satisfies unpretendability if for any \ppt ~adversary $\adv=(\adv_1,\adv_2)$,
+	  \begin{equation*}
+	  	\hspace*{-.55cm}
+	  	\pr\left[\begin{array}{l}
+	      (\pk,\sk_s,s,v) \gets \bgen(\secparam),\\
+	      (x,s_0, v_0, \state) \gets \adv_1^{\bid(\pk,\sk_s,\pk_v,\cdot)}(\pk),\\
+	      (c, \mysign, \tau_1,\tau_2) \gets \bid(\pk,\sk_{s_0},\pk_{v_0},x)\\
+	      (s_1,v_1,\widetilde{\tau_2}) \gets \adv_2^{\bid(\pk,\sk_s,\pk_v,\cdot)}(c,\mysign,\tau_1,\tau_2,\state)\\
+	      b \gets \idOp(\sk_{v_1},\mysign,\widetilde{\tau_2})
+	    \end{array}\middle\vert\,  b=1 \right]
+	  \end{equation*}
+	  is $\negl$ when the adversary $\adv$ is not allowed to choose $s_0=s_1$.
+\end{description}

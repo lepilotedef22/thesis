@@ -1,0 +1,9 @@
+Function,Gas,USD
+Deployment,1861811,21.35
+startAuction,87570,1.0
+placeBid,194757,2.23
+openBid,66072,0.76
+announceWinningCommitment,65978,0.76
+openIdentity,66322,0.76
+withdrawDeposit,34058,0.39
+punishBidder,33564,0.38

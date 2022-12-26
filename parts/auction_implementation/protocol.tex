@@ -1,0 +1,48 @@
+\begin{algorithm}
+    \caption{Anonymous Fair Trading protocol.}
+    \label{alg:protocol}
+    \begin{algorithmic}[1]
+        \State $(\pk^v, \sk_v, s, v) \gets \text{\textsc{KeyGen}}(1^k)$
+        \Comment{For auctioneer, $s = v$.}
+        \For{$i \in \{1, \dots, N \}$}
+            \State $(\pk^i, \sk_i, s_i, v_i) \gets \text{\textsc{KeyGen}}(1^k)$
+            \Comment{Generating keys for $i^{\text{th}}$ bidder.}
+        \EndFor
+        \For{$i \in \{1, \dots, N \}$}
+            \Comment{Time $T_1$: bid submission.}
+            \State $x_i \gets \mathtt{chooseBid}()$
+            \State $(c_i, \mathsf{sig}_i, \tau_{1,i}, \tau_{2,i}) \gets \text{\textsc{Bid}}(\pk^i, \sk_i, \pk^i_{v_i}, x_i)$
+            \State $\mathtt{bidderPostToBlockchain}(c_i, \mathsf{sig}_i, \pk^i)$
+        \EndFor
+        \For{$i \in \{1, \dots, N \}$}
+            \Comment{Time $T_2$: bid opening and verification.}
+            \State $\mathtt{bidderPostToBlockchain}(\tau_{1,i})$
+        \EndFor
+        \For{$i \in \{1, \dots, N \}$}
+            \State $(c_i, \mathsf{sig}_i, \tau_{1,i}) \gets \mathtt{auctioneerFetchFromBlockchain}()$
+            \If{$\text{\textsc{BidOp}}(\pk^i, \sk_v, c_i, \mathsf{sig}_i, \tau_{1,i})$}
+                \Comment{Bid $x_i$ and decommitment $d_i$ stored locally at auctioneer.}
+                \State \textbf{continue}
+            \EndIf
+        \EndFor
+        \State $c \gets \mathtt{auctioneerFetchFromBlockchain}()$
+        \Comment{Array of size $N$ with the commitments of all the bidders.}
+        \State $(c_w, \text{success}) \gets \text{\textsc{VerifiableAuction}}(x, c, d)$
+        \Comment{$c_w$ is the commitment to the winning bid.}
+        \State $\pi \gets \mathtt{ZKProve}(\mathsf{CRS}, (c, c_w), (x, d))$
+        \State $\mathtt{auctioneerPostToBlockchain}(c_w, \pi)$
+        \For{$i \in \{1, \dots, N \}$}
+            \Comment{Time $T_3$: opening of winning bidder's identity and verification.}
+            \State $c_w \gets \mathtt{bidderFetchFromBlockchain}()$
+            \If{$c_i=c_w$}
+                \Comment{$i^{\text{th}}$ bidder is the winner.}
+                \State $\mathtt{bidderPostToBlockchain}(\tau_{2,i})$
+            \EndIf
+        \EndFor
+        \State $(\mathsf{sig}_w, \tau_{2,w}) \gets \mathtt{auctioneerGetchFromBlockchain}()$
+        \If{$\text{\textsc{IdOp}}(\sk_v, \mathsf{sig}_w, \tau_{2,w})$}
+        \Comment{Identity of winning bidder successfully opened and verified.}
+        \State \textbf{continue}
+        \EndIf
+    \end{algorithmic}
+\end{algorithm}

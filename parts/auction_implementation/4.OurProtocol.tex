@@ -1,0 +1,101 @@
+\section{Proposed Scheme}
+Our proposed construction is built upon a \gls{dvrs} introduced by Saraswat and Pandey \cite{saraswat2014leak}. The resulting scheme provides correctness, unforgeability, unpretendability and signer anonymity. In this context, the auctioneer is the designated verifier trusted to open the bids. However, a collusion between malicious bidders and verifier should not affect the outcome.
+
+There are separate time frames for bid submission ($T_1$), bid opening ($T_2$) and winner declaration ($T_3$) such that $T_1 < T_2 < T_3$. During the first time interval $[0, T_1]$, the bidders submit ring signed commitments of their bids and of their identities to the auctioneer. In the course of second time interval $[T_1, T_2]$, the bidders reveal their bids by encrypting them using the public key of the auctioneer (known by anyone). In the last interval $[T_2, T_3]$, the winning bidder reveals his identity to the auctioneer.
+
+%It might be tempting to rely on linkable \glspl{rs} which seems to be a promising technique suitable in this scenario. However note that we do not want to link the transactions from the same party, especially the winning party. In a single event of bidding, linkable \gls{rs} is absolutely an appropriate choice but since each participant is allowed to participate in multiple auctions simultaneously, the auctioneer can easily discover the bidder's identity if he won in any previously held auction. Also we considered revocable \glspl{rs} in which a privileged party has authority to break the anonymity anytime. However, our use case does not allow that but choose to disclose the signer's identity when signer really wants it. Therefore, we settle to verifiable \glspl{rs} which features the similar requirements and incorporate additional primitives to provide bids confidentiality, bids non-retractability, auditability and public verifiability. 
+
+In order to successfully realize our construction, we rely on the following assumptions:
+\begin{itemize}
+    \item The auctioneer is minimally trusted and assumed not to disclose the bidder's input
+    \item Each participant and auctioneer deposit an amount of cryptocurrency in the Smart Contract. After the auction is concluded, the deposits get refunded to honest participants. This provides an economic incentive to strictly follow the protocol.
+    \item We assume the existence of a blockchain providing \textit{anonymity} and \textit{confidentiality} on the transactions. The first property is required to ensure that the anonymity of the overall scheme is not broken by merely looking at the transaction metadata, such as the fields \textit{from} and \textit{to} in the context of Ethereum. Without the second property, it would be possible to gain information about the value of the winning bid by looking at currency exchanges on the network. \red{This assumption, which might seem unrealistic at first glance, is not so costly since there already exists protocols providing such features, \textit{e.g.} Zether \cite{bunz2019zether} for Ethereum. }
+\end{itemize}
+\subsection{Our Generic Construction}
+%Our construction proposes two ring structures, namely $R=\{U_1, U_2,\dots,U_N\}$ and $R_2=\{U_s,U_{v}\}$. The aim of the first ring is to ensure the full anonymity of the bidders during the bidding process, whereas the second ring is made of two participants, the designated verifier (auctioneer) and the bidder themselves. This second ring protects the signer's anonymity against rogue designated verifier by making the verifier unable to prove to any third party that $U_s$ is the actual signer as the ring $R_2$ includes the designated verifier themselves. The same \gls{rs} scheme can be used for both rings. Below, we present the four different algorithms of our construction. Note that in what follows, the index $i \in \{1, \dots, N\}$ denotes the $i^{\text{th}}$ bidder.
+Our construction is built using four algorithms. The first one, represented in
+Algorithm~\ref{alg:gen}, is the key generation algorithm, $\keygen$, which takes care of generating the keys required to form the rings.
+It can be used for bidders and verifier. The same keys are used for both signature and encryption.
+
+\input{src/gen}
+
+The second one is the bid submission algorithm $\bid$ depicted in Algorithm \ref{alg:bid}. This algorithm outputs the commitment to the bid $c$, the modified signature $\sig = \sigma || c_1 || c_2$, the bid opening token $\tau_1 = C_1 || d_1$ and the identity opening token $\tau_2 = C_2 || d_2$. The modified signature $\sig$ is used to obtain a proof that all the required information about the bid value and the identity of the bidder are embedded and that they cannot be changed at later time. The bidder needs to send the bid and identity opening tokens for the verifier to be able to retrieve the bid value and the identity, respectively. Two different rings of parties are used in this algorithm. The first one is arbitrarily constructed by the bidder to maintain their anonymity. The second one is used to make sure that the verifier cannot convince anyone that the bidder actually generated a given bid, since the verifier is also included in the ring, which is precisely the designated verifier approach presented by Rivest et al. as an \textit{ad hoc} application of their \gls{rs} scheme introduced in their foundational paper\cite{rivest2001leak}. For the sake of generality, two different \gls{rs} schemes can be used, $\mathtt{RSig}$ and $\mathtt{R2Sig}$ in this case.
+
+\input{src/bid}
+
+The third one, depicted in Algorithm \ref{alg:bidop}, is the bid opening algorithm, $\bidOp$, which is used to verify that the bid is valid, and to open its value. The bid opening token generated by the bidder is required. If the signatures and the commitments are successfully verified, the verifier locally stores the
+bid $x$ and the corresponding opening value $d$. 
+
+\input{src/bidop}
+
+Finally, the last one is the identity opening algorithm, $\idOp$, depicted in
+Algorithm~\ref{alg:idop}, which allows the verifier to check that the identity of the
+winning bidder is valid and to obtain their public key. The
+corresponding identity opening token is needed. The \gls{rs} is verified using the ring made
+of the public keys of the winning bidder and the verifier only. If the
+identity is successfully verified, the winning bidder's public key is
+locally stored by the verifier.
+
+\input{src/idop}
+
+\subsection{Anonymous Fair Auction Protocol}
+\input{src/protocol}
+The protocol implemented in our construction is presented in Algorithm \ref{alg:protocol}. It is designed for a fixed number of $N$ bidders. The first step is concerned with the generation of the keys for the auctioneer and the bidders. Regarding the keys and the rings, some notations need to be introduced:
+
+\begin{itemize}
+    \item $\pk_v$: Verifier's public key.
+    \item $\pk^i$: $i^{\text{th}}$ bidder's ring of public keys.
+    \item $\pk^i_j$: Public key at $j^{\text{th}}$ position in $i^{\text{th}}$ bidder's ring of public keys.
+    \item $\pk_i$: $i^{\text{th}}$ bidder's public key.
+\end{itemize}
+
+Since all the bidders need to share the same auctioneer, the following condition must hold:
+
+\begin{equation*}
+    \pk_v \subseteq \cap_{i=1}^N \pk^i
+\end{equation*}
+
+At time $T_1$, each bidder chooses a bid and executes the $\bid$ algorithm to submit the commitment to their bid and the corresponding signature to the blockchain, and to store locally the opening tokens.
+
+At time $T_2$, the bidders submit their respective bid opening token to the blockchain. The auctioneer fetches the bid opening tokens, verifies the bids and stores their value. Then, the auctioneer computes the winning bid using the \textsc{VerifiableAuction} algorithm and sends the commitment to the winning bid and the \gls{zksnark} to the blockchain.
+
+Finally, at time $T_3$, the winning bidder submits their identity opening token. The auctioneer verifies the identity and stores the winner's public key.
+
+During the whole auction process, the interactions between the auctioneer, the bidders and the Smart Contract can be listed as follows:
+\begin{itemize}
+\item $\mathtt{Tx_1}$: The auctioneer triggers the auction Smart Contract.
+\item $\mathtt{Tx_2}$: The commitment $c$ and the modified signature $\sig$ output by $\bid$ are submitted by each bidder to the Smart Contract.
+\item $\mathtt{Tx_3}$: The bid opening token $\tau_1$ is submitted by each bidder to the Smart Contract so that the auctioneer can run the algorithm $\bidOp$.
+\item $\mathtt{Tx_4}$: The auctioneer submits the return value of Algorithm \ref{verifiable_auction} $c_w$ as well as the corresponding \gls{zksnark} proof $\pi$.
+\item $\mathtt{Tx_5}$: The identity opening token $\tau_2$ is submitted by the winning bidder to the Smart Contract so that the auctioneer can run algorithm $\idOp$.
+\end{itemize}
+\subsection{Zero-Knowledge Proof}
+As indicated in Section \ref{sec:preliminary_zkp}, the \gls{zkp} system used in our scheme is a slightly modified version of the one proposed in \cite{galal2018succinctly} and can be observed in Algorithm \ref{verifiable_auction}. In \cite{galal2018succinctly}, they designed their algorithm to handle a Vickrey auction, which implies that they have to return both the highest and the second highest bids. In our approach, we want to implement a first-price sealed-bid auction. Moreover, we do not want to disclose the value of the winning bid, hence the fact that our algorithm only returns the \textit{commitment} to this bid. We also assume that all the bids are different. 
+
+Practically, as it is suggested in \cite{galal2018succinctly}, it is required to translate the algorithm into an Arithmetic Circuit. To do so, an Arithmetic Circuit Generator, as the one designed by Ben-Sasson et al. in \cite{2014ben-sasson}, has to be used. More formally, the setup and usage of the \gls{zkp} system requires the following operations:
+\input{src/auction_zkp}
+
+\begin{enumerate}
+    \item The auctioneer has to generate a proof\footnote{Or an Argument of Knowledge, which is the probabilistic counterpart, as it case for a \gls{zksnark}.} and therefore needs a language description of the algorithm:
+    %\begin{equation*}
+    %    \mathcal{L} = \left\{(c_1,\dots,c_N; c_w)~\text{s.t.}~x_w = \underset{i \in \{1, N\}}{\max} \left\{\Op(c_i, \cdot) = x_i\right\}\right\}
+    %\end{equation*}
+    \begin{equation*}
+        \mathcal{L} = \mathsf{Lang}\left(\mathtt{verifiableAuction}\right)
+    \end{equation*}
+    %This language is constructed as the ensemble of $(N+1)$ tuples made of the $N$ tuple of commitments to $N$ bids, as well as the commitment to the highest bid of these bids $c_w$.
+    With $\mathsf{Lang}:\mathtt{Func}\mapsto \Sigma^*$ a mapping between the space of algorithms $\mathtt{Func}$ to the space of language descriptions over an alphabet $\Sigma$. Intuitively, this mapping can be seen as a compiler and is a black-box representation of the Arithmetic Circuit Generator described in \cite{2014ben-sasson}.
+    \item Having defined the language, it is possible to generate the \CRS, which finalizes the initial setup of the \gls{zkp} system:
+    \begin{equation*}
+        \CRS \leftarrow \ZKGen\left(1^k, \mathcal{L}\right)
+    \end{equation*}
+    These first two steps are only required when the proof system is setup for the first time, and the \CRS~stays valid as long as $N$, the maximum number of bids, remains the same. \CRS~is stored on the blockchain.
+    \item When the bidders have revealed their bids, the auctioneer executes Algorithm \ref{verifiable_auction} and determines $c_w$, which is the commitment to the highest bid stored on the blockchain, and is able to compute the proof $\pi$. In this situation, the statement, which is publicly known, is the $(N+1)$ tuple $(c; c_w)$, with $c$ the $N$ tuple made of the commitments to the bids. The witness, known only to the auctioneer, is $(x, d)$, which is a $2N$ tuple made of the value of the bids as well as their opening value. This ensures that the auction is executed correctly without leaking any information about the value of the bids. The proof $\pi$ is also stored on the blockchain.
+    \begin{equation*}
+        \pi \gets \ZKProve\left(\CRS, (c; c_w), (x,d)\right)
+    \end{equation*}
+    \item The Smart Contract verifies the auction thanks to the proof $\pi$ and to $(c; c_w)$. Since the \CRS, $\pi$ and $(c;c_w)$ are stored on the blockchain, one can leverage the auditability inherent to this data structure to be convinced that the auction was executed correctly in a transparent, trustless configuration. 
+    \begin{equation*}
+        b \gets \ZKVer\left(\CRS, \pi, (c; c_w)\right)
+    \end{equation*}
+\end{enumerate}

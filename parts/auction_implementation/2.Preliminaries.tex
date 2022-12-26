@@ -1,0 +1,209 @@
+\section{Preliminaries}
+\label{sec-Preliminaries}
+In this Section, we recall some standard definitions of commitment
+scheme, \gls{pke}, \gls{rs} and \gls{zkp}. 
+    
+\begin{definition}
+    A function $f:\mathbb{N} \mapsto \mathbb{R}^+$ is \emph{negligible} if $\forall ~p$ belonging to the set of positive polynomials, $\exists ~N \in \mathbb{N}$ s.t. $\forall ~n > N,~f(n) < \frac{1}{p(n)}$ \emph{\cite{katz2015introduction}}. A negligible function $f$ is denoted $f(n)=\negl{n}$.
+\end{definition}
+
+\begin{definition}
+    Let $\mathcal{S}$ be a set. $s \overset{\$}{\leftarrow} \mathcal{S}$ means that an element is randomly selected from a uniform distribution over $\mathcal{S}$ and assigned to $s$.
+\end{definition}
+
+\begin{definition}
+    Let $\A$ be an adversary and let $\mathcal{O}$ be some oracle. $\A^{\mathcal{O}(\cdot)}$ means that $\A$ is given access to oracle $\mathcal{O}$.
+\end{definition}
+
+\begin{definition}
+    Let $s_1$ and $s_2$ be two strings. Their concatenation is denoted as $s_1 || s_2$.
+\end{definition}
+
+\subsection{Commitment Scheme}
+A non-interactive commitment scheme is a set of algorithms
+\begin{equation*}
+    \Comm=(\Stp,\Com, \Op)
+\end{equation*}
+such that:
+\begin{itemize}
+\item \red{$\Stp(1^k)$ outputs the public parameters of the system for a given security parameter $k$}
+\item for any message $m$ belonging to the message space, $\Com$ outputs a commitment/opening pair
+  \begin{equation*}
+    (c,d) \gets \Com(m)    
+  \end{equation*}
+\item $\Op(c,d) \to m$ if $c$ is a valid commitment, otherwise
+  $\perp$
+\item Correctness: for any $m$ belonging to the message space, 
+\begin{equation*}
+    \pr\left[\Op\left(\Com\left(m\right)\right)=m\right] = 1
+\end{equation*}
+\end{itemize}
+
+The commitment scheme should possess the following two properties:
+\begin{description}
+\item \textbf{Hiding.} For any adversary $\A=(\A_1,\A_2)$,
+  \begin{equation*}
+      \left|\pr\left[\, \begin{array}{l}
+        (s_0,s_1,\stateful) \gets \A_1(1^k),\\
+        b \overset{\$}{\leftarrow} \{0,1\},\\
+        (c,d) \gets \Com(s_b),\\
+        b' \gets \A_2(c,\stateful)
+      \end{array}\,: \, b'=b \,\right] - \frac{1}{2}\right| = \negl{k}
+  \end{equation*}
+  where $\stateful$ is a state allowing stateful communication between $\A_1$ and $\A_2$.
+
+\item \textbf{Binding.} For two distinct strings $s$ and $s'$ and any probabilistic polynomial time (\ppt) adversary $\A$,
+  \begin{equation*}
+      \pr\left[\, \begin{array}{l}
+        (c,s,d,s',d') \gets \A(1^k),\\
+        v \gets \Op(c,d),\\
+        v' \gets \Op(c,d')
+      \end{array}\,: \, v'= v \,\right] = \negl{k}
+  \end{equation*}
+\end{description}
+
+\subsection{\acrlong{rs}}
+The \acrlong{rs} technique was introduced by Rivest et al. in 2001 \cite{rivest2001leak} and allows a party to anonymously sign a message. A ring is a set of possible signers, with each of them being associated with a public key $\pk_i$, and the corresponding secret key $\sk_i$ (for the $i^{\text{th}}$ user). When a \textit{verifier} checks the signature, they can only conclude that a member of the ring endorsed it, without being able to determine the identity of the signer. A \gls{rs} scheme should be unforgeable and anonymous, and consists of a triple of \ppt algorithms
+\begin{equation*}
+    \Ring=(\RG, \RS, \RV)
+\end{equation*}
+defined as follows:
+\begin{enumerate}
+\item Key Generation: $(\pk,\sk_s,s) \gets \RG(1^k)$, where $k$ denotes the security parameter, $\pk=[\pk_1, \dots, \pk_n]$ is a list of $n$ public keys, which includes the public key of the signer and $n-1$ decoy public keys, $\sk_s$ is the secret key of the signer and $s$ is the index of the signer's public key $\pk_s$ in $\pk$.
+\item Signature: $\sigma \gets \RS(\pk,\sk_s,m)$, where $\sigma$ is the signature, and $m$ the message to be signed.
+\item Verification: $b \gets \RV(\pk,m,\sigma)$, where outcome $b\in\{0,1\}$ indicates the validity of the signature.
+\end{enumerate}
+
+\begin{description}
+
+\item \textbf{Correctness.} A \gls{rs} is said to be correct if for any valid message $m$ belonging to the message space:
+\begin{equation*}
+      \pr\left[(\pk, \sk_s,s) \gets \RG(1^k) : ~ \RV(\pk, m, \RS(\pk, \sk_s,m))=1 \right] = 1
+\end{equation*}
+
+\item \textbf{Anonymity.}  A \gls{rs} satisfies anonymity if for any \ppt adversary $\A=(\A_1,\A_2)$,
+  \begin{equation*}
+      \left|\pr\left[\, \begin{array}{l}
+        (\pk,\sk_s,s) \gets \RG(1^k),\\
+        (m,s_0,s_1,\stateful) \gets \A_1^{\RS(\pk,\sk_s,\cdot)}(\pk),\\
+        b \overset{\$}{\leftarrow} \{0,1\},\\
+        \sigma \gets \RS(\pk,\sk_{s_b},m),\\
+        b' \gets \A_2^{\RS(\pk,\sk_s,\cdot)}(\stateful,\sigma)
+      \end{array}\,: \,b'=b \,\right] - \frac{1}{2} \right| = \negl{k}
+  \end{equation*}
+  where $\stateful$ is a state allowing stateful communication between $\A_1$ and $\A_2$.
+
+\item \textbf{Unforgeability.} A \gls{rs} is unforgeable if for
+  any \ppt adversary $\A=(\A_1,\A_2)$,
+  \begin{equation*}
+      \pr\left[\, \begin{array}{l}
+        (\pk,\sk_s,s) \gets \RG(1^k),\\
+        (m,\sigma) \gets \A^{\RS(\pk,\sk_s,\cdot)}(\pk),\\
+        b \gets \RV(\pk,m,\sigma)
+      \end{array}\,: \,b=1 \,\right] = \negl{k}
+  \end{equation*}
+  where the adversary $\A$ has not been allowed
+  to query the signing oracle $\RS(\pk, \sk_s, \cdot)$ with message $m$.
+\end{description}
+
+\subsection{\acrlong{pke}}
+A \gls{pke} scheme consists of a triple of \ppt
+algorithms 
+\begin{equation*}
+    \PKE=(\Gen, \Enc, \Dec)
+\end{equation*}
+defined as follows:
+\begin{enumerate}
+\item Key Generation: $(\pk, \sk) \gets \Gen(1^k)$, with $k$ the security parameter, and $\pk$ and $\sk$ the public and secret key, respectively.
+\item Encryption: $c \gets \Enc(\pk,m)$, with $c$ the ciphertext and $m$ the message.
+\item Decryption: $m \gets \Dec(\sk,c)$, with $m=\perp$ if the decryption fails.
+\end{enumerate}
+
+\begin{description}
+\item \textbf{Correctness.} A \gls{pke} scheme is said to be correct if for any valid message $m$ belonging to the message space,
+\begin{equation*}
+    \pr\left[(\pk,\sk) \gets \Gen(1^k): ~ \Dec(\sk,\Enc(\pk,m))=m\right]=1
+\end{equation*}
+
+\item \textbf{Ciphertext Indistinguishability.} A \gls{pke} scheme satisfies ciphertext indistinguishability if for any \ppt adversary $\A=(\A_1,\A_2)$,
+  \begin{equation*}
+      \pr\left[\, \begin{array}{l}
+          (\pk,\sk) \gets \Gen(1^k),\\
+          (m_0,m_1,\stateful) \gets \A_1^{\Dec(\sk,\cdot)}(\pk),\\
+          b \overset{\$}{\leftarrow} \{0,1\},\\
+          c \gets \Enc(\pk,m_b),\\
+          b' \gets \A_2^{\Dec(\sk,\cdot)}(\stateful,c)
+        \end{array}\,: \,b'=b \,\right] = \negl{k}
+  \end{equation*}
+  where $\stateful$ is a state allowing stateful communication between $\A_1$ and $\A_2$ and where the adversary $\A_2$ is not allowed to query $c$ from the decryption oracle $\Dec(\sk,\cdot)$.
+% \item \color{red}\textbf{Recipient Anonymity.}  For any adversary
+%   $\A=(\A_1,\A_2)$ the advantage
+%   \[%
+%   Pr\left[\, \begin{array}{l}
+%           (PK,SK) \gets \RG(1^k),\\
+%           (m,PK_0,PK_1,st) \gets \A_1^{\RS(PK,SK,\cdot)}(PK),\\
+%           \sigma \gets \RS(PK,SK[b],m),\\
+%           b' \gets \A_2^{\RS(PK,SK,\cdot)}(st,\sigma)
+%         \end{array}\,: \,b'=b \,\right]\]%
+  % Vishal% The above sentence is not complete. Fix it.
+\end{description}
+
+\subsection{\acrlong{zkp}}
+\label{sec:preliminary_zkp}
+The \gls{zkp} system relies on the construction presented by Galal and Youssef in \cite{galal2018succinctly} which itself is an application of the \gls{zksnark} introduced by Ben-Sasson et al. in \cite{2014ben-sasson}. Let us recall a few definitions and properties
+about this proof system. A \gls{zkp} system is a triple of
+algorithms 
+\begin{equation*}
+    \ZKP = (\ZKGen, \ZKProve, \ZKVer)
+\end{equation*}
+defined as follows:
+\begin{enumerate}
+\item Key Generation: $\CRS \leftarrow \ZKGen \left(1^k, \mathcal{L}
+  \right)$, with $\CRS$ the common reference string, $k$ the security
+  parameter, and $\mathcal{L}$ the language description.
+\item Proof Generation: $\pi \leftarrow \ZKProve \left(\CRS, s, w
+  \right)$, with $s$ the statement whose membership to $\mathcal{L}$ has to be proved, $w$ the corresponding witness, and $\pi$ the proof.
+\item Proof Verification: $b \leftarrow \ZKVer \left( \CRS, \pi, s
+  \right)$, with $b \in \{0,1\}$ the single bit indicating whether the
+  verification succeeded.
+\end{enumerate}
+The \gls{zksnark} described in \cite{2014ben-sasson} features the following properties:
+\begin{description}
+\item \textbf{Perfect Completeness.} An honest prover with a valid
+  witness is always able to convince a honest verifier.
+  Mathematically, let $s$ be a claim belonging to the language
+  $\mathcal{L}$ with $w$ the corresponding witness:
+  \begin{equation*}
+    \pr\left[\, \begin{array}{l}
+        \CRS \leftarrow \ZKGen \left(1^k, \mathcal{L} \right),\\
+        \pi \leftarrow \ZKProve \left(\CRS, s, w \right)
+      \end{array} : ~ \ZKVer \left( \CRS, \pi, s \right) = 1  \,\right] = 1
+  \end{equation*}
+\item \textbf{Computational Soundness.} The probability that a \ppt
+  adversary can convince an honest verifier that a false statement is
+  true is negligible. Mathematically, let $\mathcal{A}$ be a \ppt
+  adversary and $s$ be a claim which does not belong to the language
+  $\mathcal{L}$:
+  \begin{equation*}
+    \pr\left[\, \begin{array}{l}
+        \CRS \leftarrow \ZKGen \left(1^k, \mathcal{L} \right), \\
+        \pi \leftarrow \mathcal{A}^{\ZKProve \left(\CRS, s, \cdot \right)} \left(\CRS, s \right)
+      \end{array} : ~ \ZKVer \left( \CRS, \pi, s \right) = 1  \,\right] = \negl{k}
+  \end{equation*}
+\item \textbf{Computational \acrlong{zk}.} A \ppt adversary is not
+  able to extract any information about the witness from the proof.
+  Slightly more formally, let $\mathcal{S}$ be a simulator knowing the
+  witness $w$ to a statement $s$ in $\mathcal{L}$, and let
+  $\overline{\mathcal{S}}$ be a simulator not knowing the witness $w$. \red{For any $\mathcal{S}$, there exists an $\overline{\mathcal{S}}$ such that their views are computationally indistinguishable.}
+  
+%   The transcripts output by $\mathcal{S}$ and $\overline{\mathcal{S}}$  are computationally indistinguishable.
+\item \textbf{Succinctness.} The proof system should run in polynomial
+  size and time. Mathematically, $| \pi | =
+  \mathsf{poly_1}\left(k\right)$ and $\mathsf{Time}\left(\ZKVer(\CRS,
+    \pi, s\right)) =
+  \mathcal{O}\left(|s|\cdot\mathsf{poly_2}\left(k\right)\right)$, with
+  $|\cdot|$ being the bit-length operator, $\mathsf{poly_i}$ with
+  $\mathsf{i} \in \{\mathsf{1},\mathsf{2}\}$ belonging to the set of
+  polynomial functions and $\mathsf{Time}(\cdot)$ being the asymptotic
+  time operator.
+\end{description}

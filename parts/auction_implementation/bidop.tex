@@ -1,0 +1,26 @@
+\begin{algorithm}
+    \caption{Bid opening algorithm.}
+    \label{alg:bidop}
+    \begin{algorithmic}[1]
+        \Function{BidOp}{$\pk, \sk_v, c, \mathsf{sig}, \tau_1$}
+        \State $b \gets 0$
+        \State $\sigma, c_1, c_2 \gets \mathtt{parse}(\mathsf{sig})$
+        \If{$\mathtt{RVer}(\pk, c, \sigma)$}
+            \State $C_1, d_1 \gets \mathtt{parse}(\tau_1)$  
+            \If{$C_1 = \mathtt{Open}(c_1, d_1)$}
+                \State $m_1 \gets \mathtt{Dec}(\sk_v, C_1)$
+                \State $\tilde{c}, \tilde{\sigma}, \Sigma, d \gets \mathtt{parse}(m_1)$
+                \If{$\tilde{c} = c \land \tilde{\sigma} = \sigma$}
+                    \If{$\mathtt{RVer}(\pk, c || \sigma, \Sigma)$}
+                        \State $x \gets \mathtt{Open}(c, d)$
+                        \State $\mathtt{store}(x)$
+                        \State $\mathtt{store}(d)$
+                        \State $b \gets 1$
+                    \EndIf
+                \EndIf
+            \EndIf
+        \EndIf
+        \State \textbf{return} $b$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
